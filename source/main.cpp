@@ -8,6 +8,9 @@
 #define BRAD_PI (1 << 14)
 
 const int WHITE = RGB15(255, 255, 255);
+const int RED = RGB15(255, 0, 0);
+const int GREEN = RGB15(0, 255, 0);
+const int BLUE = RGB15(0, 0, 255);
 
 typedef struct
 {
@@ -19,12 +22,22 @@ typedef struct
 } Rectangle;
 
 Rectangle player = {HALF_WIDTH, HALF_HEIGHT, 32, 32, WHITE};
+Rectangle ball = {HALF_WIDTH - 50, HALF_HEIGHT, 20, 20, WHITE};
 
 const int PLAYER_SPEED = 5;
+
+int ballVelocityX = 2;
+int ballVelocityY = 2;
 
 void drawRectangle(Rectangle rectangle)
 {
 	glBoxFilled(rectangle.x, rectangle.y, rectangle.x + rectangle.w, rectangle.y + rectangle.h, rectangle.color);
+}
+
+bool hasCollision(Rectangle bounds, Rectangle ball)
+{
+	return bounds.x < ball.x + ball.w && bounds.x + bounds.w > ball.x &&
+		   bounds.y < ball.y + ball.h && bounds.y + bounds.h > ball.y;
 }
 
 // Example file function to set up
@@ -85,6 +98,31 @@ int main(int argc, char *argv[])
 			player.x -= PLAYER_SPEED;
 		}
 
+		if (ball.x < 0 || ball.x > SCREEN_WIDTH - ball.w)
+		{
+			ballVelocityX *= -1;
+
+			ball.color = GREEN;
+		}
+
+		else if (ball.y < 0 || ball.y > SCREEN_HEIGHT - ball.h)
+		{
+			ballVelocityY *= -1;
+
+			ball.color = RED;
+		}
+
+		else if (hasCollision(player, ball))
+		{
+			ballVelocityX *= -1;
+			ballVelocityY *= -1;
+
+			ball.color = BLUE;
+		}
+
+		ball.x += ballVelocityX;
+		ball.y += ballVelocityY;
+
 		// wait for capture unit to be ready
 		while (REG_DISPCAPCNT & DCAP_ENABLE)
 			;
@@ -94,17 +132,17 @@ int main(int argc, char *argv[])
 		// setting up top and bottom screen
 		if ((frame & 1) == 0)
 		{
-			lcdMainOnBottom();
-			vramSetBankC(VRAM_C_LCD);
-			vramSetBankD(VRAM_D_SUB_SPRITE);
-			REG_DISPCAPCNT = DCAP_BANK(2) | DCAP_ENABLE | DCAP_SIZE(3);
-		}
-		else
-		{
 			lcdMainOnTop();
 			vramSetBankD(VRAM_D_LCD);
 			vramSetBankC(VRAM_C_SUB_BG);
 			REG_DISPCAPCNT = DCAP_BANK(3) | DCAP_ENABLE | DCAP_SIZE(3);
+		}
+		else
+		{
+			lcdMainOnBottom();
+			vramSetBankC(VRAM_C_LCD);
+			vramSetBankD(VRAM_D_SUB_SPRITE);
+			REG_DISPCAPCNT = DCAP_BANK(2) | DCAP_ENABLE | DCAP_SIZE(3);
 		}
 
 		if ((frame & 1) == 0)
@@ -112,6 +150,7 @@ int main(int argc, char *argv[])
 			glBegin2D();
 
 			drawRectangle(player);
+			drawRectangle(ball);
 
 			glEnd2D();
 		}
