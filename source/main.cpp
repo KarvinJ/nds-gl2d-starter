@@ -27,8 +27,6 @@ void drawRectangle(Rectangle rectangle)
 	glBoxFilled(rectangle.x, rectangle.y, rectangle.x + rectangle.w, rectangle.y + rectangle.h, rectangle.color);
 }
 
-void lines(int frame);
-
 // Example file function to set up
 // dual screen
 void initSubSprites(void);
@@ -118,45 +116,19 @@ int main(int argc, char *argv[])
 			glEnd2D();
 		}
 		else
-			lines(frame);
+		{
+			glBegin2D();
+
+			drawRectangle(player);
+
+			glEnd2D();
+		}
 
 		glFlush(0);
 		swiWaitForVBlank();
 	}
 
 	return 0;
-}
-
-// oldskool lines demo
-void lines(int frame)
-{
-
-	// Do some funky color cycling
-	int red = abs(sinLerp(frame * 220) * 31) >> 12;
-	int green = abs(sinLerp(frame * 140) * 31) >> 12;
-	int blue = abs(sinLerp(frame * 40) * 31) >> 12;
-
-	// set up GL2D for 2d mode
-	glBegin2D();
-
-	// draw a bunch (4096/32) of colored lines
-	// using some funky trig equations
-	int i;
-	for (i = frame; i < ((1 << 12) + frame); i += 32)
-	{
-		int px = ((sinLerp(frame * 130) * 130) >> 12) * cosLerp((i * 100));
-		int py = ((sinLerp(frame * 280) * 70) >> 12) * sinLerp((i * 200));
-		int px2 = ((sinLerp(frame * 330) * 100) >> 12) * cosLerp(((i * 300 + BRAD_PI)));
-		int py2 = ((sinLerp(frame * 140) * 80) >> 12) * sinLerp(((i * 400 + BRAD_PI)));
-		glLine(HALF_WIDTH + (px >> 12), HALF_HEIGHT + (py >> 12),
-			   HALF_WIDTH + (px2 >> 12), HALF_HEIGHT + (py2 >> 12),
-			   RGB15(red, green, blue));
-		glLine(HALF_WIDTH + (py2 >> 12), HALF_HEIGHT + (px >> 12),
-			   HALF_WIDTH + (py >> 12), HALF_HEIGHT + (px2 >> 12),
-			   RGB15(green, blue, red));
-	}
-
-	glEnd2D();
 }
 
 // necessary function for the rendering
