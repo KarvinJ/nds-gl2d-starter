@@ -22,6 +22,7 @@ typedef struct
 } Rectangle;
 
 Rectangle player = {HALF_WIDTH, HALF_HEIGHT, 32, 32, WHITE};
+Rectangle bottomBounds = {HALF_WIDTH, HALF_HEIGHT, 32, 32, GREEN};
 Rectangle ball = {HALF_WIDTH - 50, HALF_HEIGHT, 20, 20, WHITE};
 
 const int PLAYER_SPEED = 5;
@@ -40,8 +41,62 @@ bool hasCollision(Rectangle bounds, Rectangle ball)
 		   bounds.y < ball.y + ball.h && bounds.y + bounds.h > ball.y;
 }
 
-// Example file function to set up
-// dual screen
+void update(int keyDown, int keyHeld)
+{
+	if (keyDown & KEY_A)
+	{
+		if (bottomBounds.color == RED)
+			bottomBounds.color = BLUE;
+		else
+			bottomBounds.color = RED;
+	}
+
+	if (keyHeld & KEY_UP && player.y > 0)
+	{
+		player.y -= PLAYER_SPEED;
+	}
+
+	else if (keyHeld & KEY_DOWN && player.y < SCREEN_HEIGHT - player.h)
+	{
+		player.y += PLAYER_SPEED;
+	}
+	else if (keyHeld & KEY_RIGHT && player.x < SCREEN_WIDTH - player.w)
+	{
+		player.x += PLAYER_SPEED;
+	}
+
+	else if (keyHeld & KEY_LEFT && player.x > 0)
+	{
+		player.x -= PLAYER_SPEED;
+	}
+
+	if (ball.x < 0 || ball.x > SCREEN_WIDTH - ball.w)
+	{
+		ballVelocityX *= -1;
+
+		ball.color = GREEN;
+	}
+
+	else if (ball.y < 0 || ball.y > SCREEN_HEIGHT - ball.h)
+	{
+		ballVelocityY *= -1;
+
+		ball.color = RED;
+	}
+
+	else if (hasCollision(player, ball))
+	{
+		ballVelocityX *= -1;
+		ballVelocityY *= -1;
+
+		ball.color = BLUE;
+	}
+
+	ball.x += ballVelocityX;
+	ball.y += ballVelocityY;
+}
+
+// Example file function to set up dual screen
 void initSubSprites(void);
 
 int main(int argc, char *argv[])
@@ -62,70 +117,25 @@ int main(int argc, char *argv[])
 	// our ever present frame counter
 	int frame = 0;
 
-	int key;	 // for key input down
+	int keyDown; // for key input down
 	int keyHeld; // for key input down
 
-	while (1)
+	while (true)
 	{
 		// increment frame counter
 		frame++;
-
 		// get input
 		scanKeys();
-		key = keysDown();
+		keyDown = keysDown();
 		keyHeld = keysHeld();
 
-		if (key & KEY_START)
+		if (keyDown & KEY_START)
 			break;
 
-		if (keyHeld & KEY_UP && player.y > 0)
-		{
-			player.y -= PLAYER_SPEED;
-		}
-
-		else if (keyHeld & KEY_DOWN && player.y < SCREEN_HEIGHT - player.h)
-		{
-			player.y += PLAYER_SPEED;
-		}
-		// process input
-		else if (keyHeld & KEY_RIGHT && player.x < SCREEN_WIDTH - player.w)
-		{
-			player.x += PLAYER_SPEED;
-		}
-
-		else if (keyHeld & KEY_LEFT && player.x > 0)
-		{
-			player.x -= PLAYER_SPEED;
-		}
-
-		if (ball.x < 0 || ball.x > SCREEN_WIDTH - ball.w)
-		{
-			ballVelocityX *= -1;
-
-			ball.color = GREEN;
-		}
-
-		else if (ball.y < 0 || ball.y > SCREEN_HEIGHT - ball.h)
-		{
-			ballVelocityY *= -1;
-
-			ball.color = RED;
-		}
-
-		else if (hasCollision(player, ball))
-		{
-			ballVelocityX *= -1;
-			ballVelocityY *= -1;
-
-			ball.color = BLUE;
-		}
-
-		ball.x += ballVelocityX;
-		ball.y += ballVelocityY;
+		update(keyDown, keyHeld);
 
 		// wait for capture unit to be ready
-		while (REG_DISPCAPCNT & DCAP_ENABLE)
-			;
+		// while (REG_DISPCAPCNT & DCAP_ENABLE);
 
 		// Alternate rendering every other frame
 		// Limits your FPS to 30
@@ -158,7 +168,7 @@ int main(int argc, char *argv[])
 		{
 			glBegin2D();
 
-			drawRectangle(player);
+			drawRectangle(bottomBounds);
 
 			glEnd2D();
 		}
@@ -166,8 +176,6 @@ int main(int argc, char *argv[])
 		glFlush(0);
 		swiWaitForVBlank();
 	}
-
-	return 0;
 }
 
 // necessary function for the rendering
