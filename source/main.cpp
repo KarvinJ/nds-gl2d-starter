@@ -1,5 +1,6 @@
 #include <nds.h>
 #include <gl2d.h>
+#include <iostream>
 #include "Cglfont.h"
 #include "font_si.h"
 #include "font_16x16.h"
@@ -11,7 +12,6 @@
 // some useful defines
 #define HALF_WIDTH (SCREEN_WIDTH / 2)
 #define HALF_HEIGHT (SCREEN_HEIGHT / 2)
-#define BRAD_PI (1 << 14)
 
 // This imageset would use our texture packer generated coords so it's kinda
 // safe and easy to use
@@ -29,6 +29,8 @@ const int GREEN = RGB15(0, 255, 0);
 const int BLUE = RGB15(0, 0, 255);
 
 bool isGamePaused;
+
+int collisionCounter;
 
 typedef struct
 {
@@ -108,6 +110,8 @@ void update(int keyDown, int keyHeld)
 		ballVelocityY *= -1;
 
 		ball.color = BLUE;
+
+		collisionCounter++;
 	}
 
 	ball.x += ballVelocityX;
@@ -125,6 +129,8 @@ int main(int argc, char *argv[])
 
 	// init oam to capture 3D scene
 	initSubSprites();
+
+	// consoleDemoInit();
 
 	// sub background holds the top image when 3D directed to bottom
 	bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
@@ -202,17 +208,7 @@ int main(int argc, char *argv[])
 			vramSetBankD(VRAM_D_LCD);
 			vramSetBankC(VRAM_C_SUB_BG);
 			REG_DISPCAPCNT = DCAP_BANK(3) | DCAP_ENABLE | DCAP_SIZE(3);
-		}
-		else
-		{
-			lcdMainOnBottom();
-			vramSetBankC(VRAM_C_LCD);
-			vramSetBankD(VRAM_D_SUB_SPRITE);
-			REG_DISPCAPCNT = DCAP_BANK(2) | DCAP_ENABLE | DCAP_SIZE(3);
-		}
 
-		if ((frame & 1) == 0)
-		{
 			glBegin2D();
 
 			drawRectangle(player);
@@ -229,9 +225,22 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
+			lcdMainOnBottom();
+			vramSetBankC(VRAM_C_LCD);
+			vramSetBankD(VRAM_D_SUB_SPRITE);
+			REG_DISPCAPCNT = DCAP_BANK(2) | DCAP_ENABLE | DCAP_SIZE(3);
+
 			glBegin2D();
 
 			drawRectangle(bottomBounds);
+
+			glColor(RGB15(0, 31, 31));
+
+			// If I put to much text the screen order will get swapped, the top will become bottom
+			// need to be carefull.
+			std::string collisionCounterString = "COUNTER: " + std::to_string(collisionCounter);
+
+			Font.PrintCentered(0, 20, collisionCounterString.c_str());
 
 			glEnd2D();
 		}
