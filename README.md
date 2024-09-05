@@ -1,6 +1,6 @@
 # NDS GL2D STARTER
 
-A Very simple Nintendo DS GL2D starter template.
+A Nintendo DS GL2D starter template.
 
 # Building
 
