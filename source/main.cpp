@@ -191,8 +191,7 @@ int main(int argc, char *argv[])
 		}
 
 		// wait for capture unit to be ready
-		while (REG_DISPCAPCNT & DCAP_ENABLE)
-			;
+		while (REG_DISPCAPCNT & DCAP_ENABLE);
 
 		// Alternate rendering every other frame
 		// Limits your FPS to 30
