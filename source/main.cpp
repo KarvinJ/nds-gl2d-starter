@@ -44,6 +44,7 @@ typedef struct
 Rectangle player = {HALF_WIDTH, HALF_HEIGHT, 32, 32, WHITE};
 Rectangle bottomBounds = {HALF_WIDTH, HALF_HEIGHT, 32, 32, GREEN};
 Rectangle ball = {HALF_WIDTH - 50, HALF_HEIGHT, 20, 20, WHITE};
+Rectangle touchBounds = {0, 0, 8, 8, WHITE};
 
 const int PLAYER_SPEED = 5;
 
@@ -63,14 +64,6 @@ bool hasCollision(Rectangle bounds, Rectangle ball)
 
 void update(int keyDown, int keyHeld)
 {
-	if (keyDown & KEY_A)
-	{
-		if (bottomBounds.color == RED)
-			bottomBounds.color = BLUE;
-		else
-			bottomBounds.color = RED;
-	}
-
 	if (keyHeld & KEY_UP && player.y > 0)
 	{
 		player.y -= PLAYER_SPEED;
@@ -177,12 +170,36 @@ int main(int argc, char *argv[])
 	int keyDown; // for key input down
 	int keyHeld; // for key input down
 
+	touchPosition touch;
+
 	while (true)
 	{
 		// increment frame counter
 		frame++;
 		// get input
 		scanKeys();
+
+		// read the touchscreen coordinates
+		touchRead(&touch);
+
+		if (touch.px > 0 && touch.py > 0 && touch.px < SCREEN_WIDTH - bottomBounds.w && touch.py < SCREEN_HEIGHT - bottomBounds.h)
+		{
+			bottomBounds.x = touch.px;
+			bottomBounds.y = touch.py;
+		}
+
+		touchBounds.x = touch.px;
+		touchBounds.y = touch.py;
+
+		if (hasCollision(touchBounds, bottomBounds))
+		{
+			bottomBounds.color = RED;
+		}
+		else
+		{
+			bottomBounds.color = BLUE;
+		}
+
 		keyDown = keysDown();
 		keyHeld = keysHeld();
 
@@ -197,7 +214,8 @@ int main(int argc, char *argv[])
 		}
 
 		// wait for capture unit to be ready
-		while (REG_DISPCAPCNT & DCAP_ENABLE);
+		while (REG_DISPCAPCNT & DCAP_ENABLE)
+			;
 
 		// Alternate rendering every other frame
 		// Limits your FPS to 30
