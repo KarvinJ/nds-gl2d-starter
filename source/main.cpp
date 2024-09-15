@@ -124,6 +124,50 @@ void update(int keyDown, int keyHeld)
 	ball.y += ballVelocityY;
 }
 
+void renderTopScreen()
+{
+	lcdMainOnTop();
+	vramSetBankD(VRAM_D_LCD);
+	vramSetBankC(VRAM_C_SUB_BG);
+	REG_DISPCAPCNT = DCAP_BANK(3) | DCAP_ENABLE | DCAP_SIZE(3);
+
+	glBegin2D();
+
+	drawRectangle(player);
+	drawRectangle(ball);
+
+	if (isGamePaused)
+	{
+		// change fontsets and  print some spam
+		glColor(RGB15(0, 31, 31));
+		Font.PrintCentered(0, 20, "GAME PAUSED");
+	}
+
+	glEnd2D();
+}
+
+void renderBottomScreen()
+{
+	lcdMainOnBottom();
+	vramSetBankC(VRAM_C_LCD);
+	vramSetBankD(VRAM_D_SUB_SPRITE);
+	REG_DISPCAPCNT = DCAP_BANK(2) | DCAP_ENABLE | DCAP_SIZE(3);
+
+	glBegin2D();
+
+	drawRectangle(bottomBounds);
+
+	glColor(RGB15(0, 31, 31));
+
+	// If I put to much text the screen order will get swapped, the top will become bottom
+	// need to be carefull.
+	std::string collisionCounterString = "COUNTER: " + std::to_string(collisionCounter);
+
+	Font.PrintCentered(0, 20, collisionCounterString.c_str());
+
+	glEnd2D();
+}
+
 // Example file function to set up dual screen
 void initSubSprites(void);
 
@@ -176,6 +220,7 @@ int main(int argc, char *argv[])
 				 (u16 *)font_siPal,
 				 (u8 *)font_16x16Bitmap);
 
+	// maxmod audio library only support music from mod/it/s3m files extension.
 	// load the module
 	mmLoad(MOD_FLATOUTLIES);
 
@@ -185,7 +230,7 @@ int main(int argc, char *argv[])
 	// set music volume
 	mmSetModuleVolume(400);
 
-		// load sound effects
+	// load sound effects
 	mmLoadEffect(SFX_MAGIC);
 
 	collisionSound = {
@@ -238,6 +283,8 @@ int main(int argc, char *argv[])
 		if (keyDown & KEY_START)
 		{
 			isGamePaused = !isGamePaused;
+
+			mmEffectEx(&collisionSound);
 		}
 
 		if (!isGamePaused)
@@ -246,53 +293,18 @@ int main(int argc, char *argv[])
 		}
 
 		// wait for capture unit to be ready
-		while (REG_DISPCAPCNT & DCAP_ENABLE)
-			;
+		while (REG_DISPCAPCNT & DCAP_ENABLE);
 
 		// Alternate rendering every other frame
 		// Limits your FPS to 30
 		// setting up top and bottom screen
 		if ((frame & 1) == 0)
 		{
-			lcdMainOnTop();
-			vramSetBankD(VRAM_D_LCD);
-			vramSetBankC(VRAM_C_SUB_BG);
-			REG_DISPCAPCNT = DCAP_BANK(3) | DCAP_ENABLE | DCAP_SIZE(3);
-
-			glBegin2D();
-
-			drawRectangle(player);
-			drawRectangle(ball);
-
-			if (isGamePaused)
-			{
-				// change fontsets and  print some spam
-				glColor(RGB15(0, 31, 31));
-				Font.PrintCentered(0, 20, "GAME PAUSED");
-			}
-
-			glEnd2D();
+			renderTopScreen();
 		}
 		else
 		{
-			lcdMainOnBottom();
-			vramSetBankC(VRAM_C_LCD);
-			vramSetBankD(VRAM_D_SUB_SPRITE);
-			REG_DISPCAPCNT = DCAP_BANK(2) | DCAP_ENABLE | DCAP_SIZE(3);
-
-			glBegin2D();
-
-			drawRectangle(bottomBounds);
-
-			glColor(RGB15(0, 31, 31));
-
-			// If I put to much text the screen order will get swapped, the top will become bottom
-			// need to be carefull.
-			std::string collisionCounterString = "COUNTER: " + std::to_string(collisionCounter);
-
-			Font.PrintCentered(0, 20, collisionCounterString.c_str());
-
-			glEnd2D();
+			renderBottomScreen();
 		}
 
 		glFlush(0);
