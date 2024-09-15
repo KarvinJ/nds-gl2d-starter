@@ -1,6 +1,10 @@
 #include <nds.h>
 #include <gl2d.h>
 #include <iostream>
+#include <maxmod9.h>
+#include "soundbank.h"
+#include "soundbank_bin.h"
+
 #include "Cglfont.h"
 #include "font_si.h"
 #include "font_16x16.h"
@@ -22,6 +26,8 @@ glImage FontBigImages[FONT_16X16_NUM_IMAGES];
 // Our fonts
 Cglfont Font;
 Cglfont FontBig;
+
+mm_sound_effect collisionSound;
 
 const int WHITE = RGB15(255, 255, 255);
 const int RED = RGB15(255, 0, 0);
@@ -88,6 +94,8 @@ void update(int keyDown, int keyHeld)
 		ballVelocityX *= -1;
 
 		ball.color = GREEN;
+
+		mmEffectEx(&collisionSound);
 	}
 
 	else if (ball.y < 0 || ball.y > SCREEN_HEIGHT - ball.h)
@@ -95,6 +103,8 @@ void update(int keyDown, int keyHeld)
 		ballVelocityY *= -1;
 
 		ball.color = RED;
+
+		mmEffectEx(&collisionSound);
 	}
 
 	else if (hasCollision(player, ball))
@@ -105,6 +115,9 @@ void update(int keyDown, int keyHeld)
 		ball.color = BLUE;
 
 		collisionCounter++;
+
+		// Play collision sound effect out of right speaker if B button is pressed
+		mmEffectEx(&collisionSound);
 	}
 
 	ball.x += ballVelocityX;
@@ -122,8 +135,7 @@ int main(int argc, char *argv[])
 
 	// init oam to capture 3D scene
 	initSubSprites();
-
-	// consoleDemoInit();
+	mmInitDefaultMem((mm_addr)soundbank_bin);
 
 	// sub background holds the top image when 3D directed to bottom
 	bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
@@ -163,6 +175,26 @@ int main(int argc, char *argv[])
 				 256,
 				 (u16 *)font_siPal,
 				 (u8 *)font_16x16Bitmap);
+
+	// load the module
+	mmLoad(MOD_FLATOUTLIES);
+
+	// Start playing module
+	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
+
+	// set music volume
+	mmSetModuleVolume(400);
+
+		// load sound effects
+	mmLoadEffect(SFX_MAGIC);
+
+	collisionSound = {
+		{SFX_MAGIC},			 // id
+		(int)(1.0f * (1 << 10)), // rate
+		0,						 // handle
+		255,					 // volume
+		255,					 // panning
+	};
 
 	// our ever present frame counter
 	int frame = 0;
