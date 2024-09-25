@@ -79,6 +79,7 @@ void update(int keyDown, int keyHeld)
 	{
 		player.y += PLAYER_SPEED;
 	}
+	
 	else if (keyHeld & KEY_RIGHT && player.x < SCREEN_WIDTH - player.w)
 	{
 		player.x += PLAYER_SPEED;
