@@ -245,9 +245,6 @@ int main(int argc, char *argv[])
 	// our ever present frame counter
 	int frame = 0;
 
-	int keyDown; // for key input down
-	int keyHeld; // for key input down
-
 	touchPosition touch;
 
 	while (true)
@@ -278,8 +275,8 @@ int main(int argc, char *argv[])
 			bottomBounds.color = BLUE;
 		}
 
-		keyDown = keysDown();
-		keyHeld = keysHeld();
+		int keyDown = keysDown();
+		int keyHeld = keysHeld();
 
 		if (keyDown & KEY_START)
 		{
