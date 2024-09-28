@@ -1,10 +1,12 @@
 #include <nds.h>
 #include <gl2d.h>
 #include <iostream>
+// sounds
 #include <maxmod9.h>
 #include "soundbank.h"
 #include "soundbank_bin.h"
 
+// fonts
 #include "Cglfont.h"
 #include "font_si.h"
 #include "font_16x16.h"
@@ -57,19 +59,21 @@ const int PLAYER_SPEED = 5;
 int ballVelocityX = 2;
 int ballVelocityY = 2;
 
-void drawRectangle(Rectangle rectangle)
+void drawRectangle(Rectangle &rectangle)
 {
 	glBoxFilled(rectangle.x, rectangle.y, rectangle.x + rectangle.w, rectangle.y + rectangle.h, rectangle.color);
 }
 
-bool hasCollision(Rectangle bounds, Rectangle ball)
+bool hasCollision(Rectangle &bounds, Rectangle &ball)
 {
 	return bounds.x < ball.x + ball.w && bounds.x + bounds.w > ball.x &&
 		   bounds.y < ball.y + ball.h && bounds.y + bounds.h > ball.y;
 }
 
-void update(int keyHeld)
+void update()
 {
+	int keyHeld = keysHeld();
+
 	if (keyHeld & KEY_UP && player.y > 0)
 	{
 		player.y -= PLAYER_SPEED;
@@ -275,7 +279,6 @@ int main(int argc, char *argv[])
 		}
 
 		int keyDown = keysDown();
-		int keyHeld = keysHeld();
 
 		if (keyDown & KEY_START)
 		{
@@ -286,7 +289,7 @@ int main(int argc, char *argv[])
 
 		if (!isGamePaused)
 		{
-			update(keyHeld);
+			update();
 		}
 
 		// wait for capture unit to be ready
