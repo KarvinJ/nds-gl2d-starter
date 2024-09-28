@@ -68,7 +68,7 @@ bool hasCollision(Rectangle bounds, Rectangle ball)
 		   bounds.y < ball.y + ball.h && bounds.y + bounds.h > ball.y;
 }
 
-void update(int keyDown, int keyHeld)
+void update(int keyHeld)
 {
 	if (keyHeld & KEY_UP && player.y > 0)
 	{
@@ -79,7 +79,7 @@ void update(int keyDown, int keyHeld)
 	{
 		player.y += PLAYER_SPEED;
 	}
-	
+
 	else if (keyHeld & KEY_RIGHT && player.x < SCREEN_WIDTH - player.w)
 	{
 		player.x += PLAYER_SPEED;
@@ -117,7 +117,7 @@ void update(int keyDown, int keyHeld)
 
 		collisionCounter++;
 
-		// Play collision sound effect out of right speaker if B button is pressed
+		// Play collision sound effect
 		mmEffectEx(&collisionSound);
 	}
 
@@ -169,7 +169,6 @@ void renderBottomScreen()
 	glEnd2D();
 }
 
-// Example file function to set up dual screen
 void initSubSprites(void);
 
 int main(int argc, char *argv[])
@@ -188,7 +187,7 @@ int main(int argc, char *argv[])
 	// Initialize GL in 3d mode
 	glScreen2D();
 
-	// Set  Bank A to texture (128 kb)
+	// Set Bank A to texture (128 kb)
 	vramSetBankA(VRAM_A_TEXTURE);
 	vramSetBankE(VRAM_E_TEX_PALETTE); // Allocate VRAM bank for all the palettes
 
@@ -229,7 +228,7 @@ int main(int argc, char *argv[])
 	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
 
 	// set music volume
-	mmSetModuleVolume(400);
+	mmSetModuleVolume(200);
 
 	// load sound effects
 	mmLoadEffect(SFX_MAGIC);
@@ -238,7 +237,7 @@ int main(int argc, char *argv[])
 		{SFX_MAGIC},			 // id
 		(int)(1.0f * (1 << 10)), // rate
 		0,						 // handle
-		255,					 // volume
+		100,					 // volume
 		255,					 // panning
 	};
 
@@ -287,7 +286,7 @@ int main(int argc, char *argv[])
 
 		if (!isGamePaused)
 		{
-			update(keyDown, keyHeld);
+			update(keyHeld);
 		}
 
 		// wait for capture unit to be ready
@@ -311,10 +310,8 @@ int main(int argc, char *argv[])
 }
 
 // necessary function for the rendering
-//-------------------------------------------------------
 // set up a 2D layer construced of bitmap sprites
 // this holds the image when rendering to the top screen
-//-------------------------------------------------------
 void initSubSprites(void)
 {
 	oamInit(&oamSub, SpriteMapping_Bmp_2D_256, false);
@@ -326,6 +323,7 @@ void initSubSprites(void)
 
 	// set up a 4x3 grid of 64x64 sprites to cover the screen
 	for (y = 0; y < 3; y++)
+	{
 		for (x = 0; x < 4; x++)
 		{
 			oamSub.oamMemory[id].attribute[0] = ATTR0_BMP | ATTR0_SQUARE | (64 * y);
@@ -333,8 +331,8 @@ void initSubSprites(void)
 			oamSub.oamMemory[id].attribute[2] = ATTR2_ALPHA(1) | (8 * 32 * y) | (8 * x);
 			id++;
 		}
+	}
 
 	swiWaitForVBlank();
-
 	oamUpdate(&oamSub);
 }
