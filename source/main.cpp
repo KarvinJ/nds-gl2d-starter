@@ -178,7 +178,11 @@ void initSubSprites(void);
 int main(int argc, char *argv[])
 {
 	// Mode 5: 2 Static layers + 2 Affine Extended layers. This is the most common mode used since it’s incredibly flexible.
+
+	//Set video mode top screen
 	videoSetMode(MODE_5_3D);
+
+	//Set video mode bottom screen
 	videoSetModeSub(MODE_5_2D);
 
 	// init oam to capture 3D scene
