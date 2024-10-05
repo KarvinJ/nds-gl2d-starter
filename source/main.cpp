@@ -230,6 +230,7 @@ int main(int argc, char *argv[])
 
 	// maxmod audio library only support music from mod/it/s3m files extension.
 	// load the module
+	// to load the other music exchange mmload and mmstart with MOD_DARKSTONE
 	mmLoad(MOD_FLATOUTLIES);
 
 	// Start playing module
