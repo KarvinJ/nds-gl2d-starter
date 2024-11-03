@@ -1,6 +1,6 @@
-#include <nds.h>
-#include <gl2d.h>
+#include "starter.h"
 #include <iostream>
+
 // sounds
 #include <maxmod9.h>
 #include "soundbank.h"
@@ -40,15 +40,6 @@ bool isGamePaused;
 
 int collisionCounter;
 
-typedef struct
-{
-	float x;
-	float y;
-	float w;
-	float h;
-	unsigned int color;
-} Rectangle;
-
 Rectangle player = {HALF_WIDTH, HALF_HEIGHT, 32, 32, WHITE};
 Rectangle bottomBounds = {HALF_WIDTH, HALF_HEIGHT, 32, 32, GREEN};
 Rectangle ball = {HALF_WIDTH - 50, HALF_HEIGHT, 20, 20, WHITE};
@@ -58,17 +49,6 @@ const int PLAYER_SPEED = 5;
 
 int ballVelocityX = 2;
 int ballVelocityY = 2;
-
-void drawRectangle(Rectangle &rectangle)
-{
-	glBoxFilled(rectangle.x, rectangle.y, rectangle.x + rectangle.w, rectangle.y + rectangle.h, rectangle.color);
-}
-
-bool hasCollision(Rectangle &bounds, Rectangle &ball)
-{
-	return bounds.x < ball.x + ball.w && bounds.x + bounds.w > ball.x &&
-		   bounds.y < ball.y + ball.h && bounds.y + bounds.h > ball.y;
-}
 
 void update()
 {
@@ -172,8 +152,6 @@ void renderBottomScreen()
 
 	glEnd2D();
 }
-
-void initSubSprites(void);
 
 int main(int argc, char *argv[])
 {
@@ -315,32 +293,4 @@ int main(int argc, char *argv[])
 		glFlush(0);
 		swiWaitForVBlank();
 	}
-}
-
-// necessary function for the rendering
-// set up a 2D layer construced of bitmap sprites
-// this holds the image when rendering to the top screen
-void initSubSprites(void)
-{
-	oamInit(&oamSub, SpriteMapping_Bmp_2D_256, false);
-
-	int x = 0;
-	int y = 0;
-
-	int id = 0;
-
-	// set up a 4x3 grid of 64x64 sprites to cover the screen
-	for (y = 0; y < 3; y++)
-	{
-		for (x = 0; x < 4; x++)
-		{
-			oamSub.oamMemory[id].attribute[0] = ATTR0_BMP | ATTR0_SQUARE | (64 * y);
-			oamSub.oamMemory[id].attribute[1] = ATTR1_SIZE_64 | (64 * x);
-			oamSub.oamMemory[id].attribute[2] = ATTR2_ALPHA(1) | (8 * 32 * y) | (8 * x);
-			id++;
-		}
-	}
-
-	swiWaitForVBlank();
-	oamUpdate(&oamSub);
 }
