@@ -15,6 +15,8 @@
 #include "uvcoord_font_si.h"
 #include "uvcoord_font_16x16.h"
 
+#include "ready.h"
+
 // some useful defines
 #define HALF_WIDTH (SCREEN_WIDTH / 2)
 #define HALF_HEIGHT (SCREEN_HEIGHT / 2)
@@ -24,6 +26,7 @@
 // FONT_SI_NUM_IMAGES is a value #defined from "uvcoord_font_si.h"
 glImage FontImages[FONT_SI_NUM_IMAGES];
 glImage FontBigImages[FONT_16X16_NUM_IMAGES];
+glImage ready_images[1];
 
 // Our fonts
 Cglfont Font;
@@ -121,6 +124,9 @@ void renderTopScreen()
 	drawRectangle(player);
 	drawRectangle(ball);
 
+	//draw sprite
+	glSprite(0, 0, GL_FLIP_NONE, ready_images);
+
 	if (isGamePaused)
 	{
 		// change fontsets and  print some spam
@@ -157,10 +163,10 @@ int main(int argc, char *argv[])
 {
 	// Mode 5: 2 Static layers + 2 Affine Extended layers. This is the most common mode used since it’s incredibly flexible.
 
-	//Set video mode top screen
+	// Set video mode top screen
 	videoSetMode(MODE_5_3D);
 
-	//Set video mode bottom screen
+	// Set video mode bottom screen
 	videoSetModeSub(MODE_5_2D);
 
 	// init oam to capture 3D scene
@@ -176,6 +182,19 @@ int main(int argc, char *argv[])
 	// Set Bank A to texture (128 kb)
 	vramSetBankA(VRAM_A_TEXTURE);
 	vramSetBankE(VRAM_E_TEX_PALETTE); // Allocate VRAM bank for all the palettes
+
+	glLoadTileSet(ready_images,
+				  256,
+				  128,
+				  256,
+				  192,
+				  GL_RGB256,
+				  TEXTURE_SIZE_256,
+				  TEXTURE_SIZE_128,
+				  GL_TEXTURE_WRAP_S | GL_TEXTURE_WRAP_T | TEXGEN_OFF | GL_TEXTURE_COLOR0_TRANSPARENT,
+				  256,
+				  (u16 *)readyPal,
+				  (u8 *)readyBitmap);
 
 	// Load our font texture
 	// We used glLoadSpriteSet since the texture was made
@@ -276,7 +295,8 @@ int main(int argc, char *argv[])
 		}
 
 		// wait for capture unit to be ready
-		while (REG_DISPCAPCNT & DCAP_ENABLE);
+		while (REG_DISPCAPCNT & DCAP_ENABLE)
+			;
 
 		// Alternate rendering every other frame
 		// Limits your FPS to 30
